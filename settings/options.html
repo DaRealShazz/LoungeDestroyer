@@ -52,7 +52,7 @@
                         </select>
                     </div>
                     <div class="col-md-6 ld-setting">
-                        <label class="control-label">Use cached item price list <a href="#" data-toggle="tooltip" data-original-title="LoungeDestroyer can provide item price values where available from our own dedicated API. The item price list cache updates periodically.">(?)</a>:</label>
+                        <label class="control-label">Use cached item price list <a href="#" data-toggle="tooltip" data-original-title="Enable this setting if you have market prices set to load automatically, which might be happening slowly, because for each item there is, extension needs to create a request to Steam market API. If you enable this setting, market prices will load much faster and LoungeDestroyer will cache a full list of item market values on your computer which will update periodically in the background.">(?)</a>:</label>
                         <select id="useCachedPriceList" class="form-control">
                             <option value="1">Enabled</option>
                             <option value="0">Disabled</option>
@@ -182,7 +182,7 @@
 
                 <div class="row">
                     <div class="col-md-6 ld-setting">
-                        <label class="control-label">Redirect from item draft page <a href="#" data-toggle="tooltip" data-original-title="CS:GO Lounge does an annoying redirect to item drafting page, which can be stopped by extension. This may cause some lag issues as this will keep redirecting to intended page instead of item drafting page.">(?)</a>:</label>
+                        <label class="control-label">Auto-refresh page when item draft message appears <a href="#" data-toggle="tooltip" data-original-title="CS:GO Lounge stops you from accessing My Bets page during the item draft process, if you enable this setting, LoungeDestroyer will automatically refresh this page until the item draft message is gone.">(?)</a>:</label>
                         <select id="redirect" class="form-control">
                             <option value="1">Enabled</option>
                             <option value="0">Disabled</option>
@@ -205,7 +205,7 @@
                         </select>
                     </div>
                     <div class="col-md-6 ld-setting">
-                        <label class="control-label">Add preview buttons to trades:</label>
+                        <label class="control-label">Add preview buttons to all trades:</label>
                         <select id="addTradePreviews" class="form-control">
                             <option value="1">Enabled</option>
                             <option value="0">Disabled</option>
@@ -227,6 +227,51 @@
                             <option value="1">Enabled</option>
                             <option value="0">Disabled</option>
                         </select>
+                    </div>
+                </div>
+
+                <h3 class="page-header">Audio</h3>
+                <div class="row">
+                    <div class="col-md-6 ld-setting">
+                        <label class="control-label">Change the 'trade offer received' beep noise:</label>
+                        <select id="beepSoundDisable" class="form-control">
+                            <option value="0">Disabled (no changes)</option>
+                            <option value="1">Remove the audio completely</option>
+                            <option value="2">Custom audio</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 ld-setting">
+                        <label class="control-label">Custom .mp3 audio to be played when trade offer has been received:</label>
+                        <div class="input-group">
+                            <input id="customTradeOfferSound" class="form-control" placeholder="HTTP URL to your custom .mp3 audio" type="url">
+                            <span class="input-group-btn">
+                                <button id="offer-audio-play-btn" class="btn btn-primary">&#9658;</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 class="page-header">Trade filters</h3>
+                <div class="row">
+                    <div class="col-md-6 ld-setting">
+                        <label class="control-label">Hide trades that include:</label>
+                        <input type="text" id="hideTradesFilter" class="form-control" placeholder="Enter keywords">
+                        <p class="help-block">
+                            Any trades that include these keywords will be hidden. Keywords are separated by space, unless enclosed in quotes. Punctuation and leading/trailing whitespace is ignored when matching.
+                        </p>
+                        <p class="help-block">Currently matching:
+                            <span class="keywordsContainer"></span>
+                        </p>
+                    </div>
+                    <div class="col-md-6 ld-setting">
+                        <label class="control-label">Mark trades that include:</label>
+                        <input type="text" id="markTradesFilter" class="form-control" placeholder="Enter keywords">
+                        <p class="help-block">
+                            Any trades that include these keywords will be visibly marked with a red line next to their description. Keywords are separated by space, unless enclosed in quotes. Punctuation and leading/trailing whitespace is ignored when matching.
+                        </p>
+                        <p class="help-block">Currently matching:
+                            <span class="keywordsContainer"></span>
+                        </p>
                     </div>
                 </div>
 
@@ -255,7 +300,7 @@
                     </div>
                     <div class="col-md-12 ld-setting">
                         <label class="control-label">Calculate inventory statistics for betting groups:</label>
-                        <select id="inventoryStatisticsGroup" multiple class="form-control" size="6">
+                        <select id="inventoryStatisticsGroup" multiple class="form-control" size="8">
                             <option value="1" solo>Calculate for all items in inventory</option>
                             <option value="0" solo>Disabled</option>
                             <option disabled></option>
@@ -290,6 +335,21 @@
                     <div class="col-md-6 ld-setting">
                         <label class="control-label">Profanity:</label>
                         <select id="renameButtons" class="form-control">
+                            <option value="1">Enabled</option>
+                            <option value="0">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 ld-setting">
+                        <label class="control-label">Betted match indicator <a href="#" data-toggle="tooltip" data-original-title="Shows a small indicator on the front page besides matches you've already betted on.">(?)</a>:</label>
+                        <select id="showBettedIndicator" class="form-control">
+                        <option value="2">Show on matches bet on</option>
+                        <option value="1">Show on matches not bet on</option>
+                        <option value="0">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 ld-setting">
+                        <label class="control-label">Focus on trade offer tabs when auto-betting receives offer:</label>
+                        <select id="focusOnTradeofferTab" class="form-control">
                             <option value="1">Enabled</option>
                             <option value="0">Disabled</option>
                         </select>

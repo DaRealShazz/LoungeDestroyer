@@ -2,20 +2,21 @@ var Match = function() {};
 /**
  * Creates a request to a match page, property matchID has be set before hand on the Match object
  * @param callback Success callback, returns with document object received from the request
- * @param game "730" or "570"
+ * @param game '730' or '570'
  */
 Match.prototype.fetchMatchPage = function(callback, game) {
-    if(!game) {
-        this.game = appID || "730";
+    if (!game) {
+        this.game = appID || '730';
     }
-    var self = this;
+
+    var _this = this;
     $.ajax({
-        url: self.generateMatchURL(appID),
-        type: "GET",
+        url: _this.generateMatchURL(appID),
+        type: 'GET',
         success: function(data) {
-            var doc = document.implementation.createHTMLDocument("");
+            var doc = document.implementation.createHTMLDocument('');
             doc.body.innerHTML = data;
-            self.matchPage = data;
+            _this.matchPage = data;
             callback(doc);
         }
     });
@@ -26,16 +27,17 @@ Match.prototype.fetchMatchPage = function(callback, game) {
  */
 Match.prototype.parseMatchElement = function(elm) {
     // Because the timeFromNow is not wrapped around an element and is a text node, we need to do this..
-    var timeFromNow = $(".matchheader > *:eq(0)", elm).contents()
-        .filter(function() {
-            return this.nodeType === 3;
-        });
-    this.timeFromNow = timeFromNow || "in near future..";
-    this.tournamentName = $(".matchheader .eventm", elm).text().trim() || undefined;
-    this.matchULR = $("a[href]:first", elm)[0].href;
-    this.matchID = $("a[href]:first", elm).attr("href").replace(/\D/g, '');
-    this.teamA = $(".teamtext:eq(0) b", elm).text().trim() || $(".changeteam:eq(0)", elm).text().trim() || undefined;
-    this.teamB = $(".teamtext:eq(1) b", elm).text().trim() || $(".changeteam:eq(1)", elm).text().trim() || undefined;
+    var timeFromNow = $('.matchheader > *:eq(0)', elm).contents();
+    this.timeFromNow = $(timeFromNow[0]).text() || 'in near future..';
+
+    // This somehow works..
+    this.tournamentName = $('.matchheader .eventm', elm).text().trim() || undefined;
+    this.matchURL = $('a[href]:first', elm)[0].href;
+
+    // Does not work if it's not run in page context
+    this.matchID = $('a[href]:first', elm).attr('href').replace(/\D/g, '');
+    this.teamA = $('.teamtext:eq(0) b', elm).text().trim() || $('.changeteam:eq(0)', elm).text().trim() || undefined;
+    this.teamB = $('.teamtext:eq(1) b', elm).text().trim() || $('.changeteam:eq(1)', elm).text().trim() || undefined;
     this.parsedMatchElement = true;
 };
 /**
@@ -43,10 +45,11 @@ Match.prototype.parseMatchElement = function(elm) {
  * @param elm The body/page element of match page
  */
 Match.prototype.parseMatchPage = function(elm) {
-    var matchHeader = $("section.box:eq(0) .box-shiny-alt div[style='display: flex']", elm);
-    this.timeFromNow = $(".half:eq(0)", matchHeader).text().trim();
-    this.matchFormat = $(".half:eq(1)", matchHeader).text().trim();
-    this.exactTime = $(".half:eq(2)", matchHeader).text().trim();
+    var matchHeader = $('section.box:eq(0) .box-shiny-alt div[style="display: flex"]', elm);
+    this.timeFromNow = $('.half:eq(0)', matchHeader).text().trim();
+    this.matchFormat = $('.half:eq(1)', matchHeader).text().trim();
+    this.exactTime = $('.half:eq(2)', matchHeader).text().trim();
+    this.userBetted = !!$('.box-shiny-alt .winsorloses', elm).length;
 };
 /**
  *
@@ -55,28 +58,35 @@ Match.prototype.parseMatchPage = function(elm) {
  * @returns {string} Match URL
  */
 Match.prototype.generateMatchURL = function(appID) {
-    return "http://" + (appID == "570" ? "dota2lounge.com" : "csgolounge.com") + "/match?m=" + this.matchID;
+    return (window.location.protocol != 'chrome-extension:' ? window.location.protocol : 'http:') + '//' + (appID == '570' ? 'dota2lounge.com' : 'csgolounge.com') + '/match?m=' + this.matchID;
 };
 /**
  * Appends gathered extra match info (best of x, exact time) to targetElement
  * @param targetElement .matchmain element on site
  */
 Match.prototype.appendExtraMatchInfo = function(targetElement) {
-    var matchHeaderBlock = $(".matchheader .whenm:eq(0)", targetElement);
+    var matchHeaderBlock = $('.matchheader .whenm:eq(0)', targetElement);
 
-    if(this.exactTime) {
+    // this.userBetted is never === '-'
+    if (this.userBetted !== undefined && this.userBetted === ['-', false, true][LoungeUser.userSettings.showBettedIndicator]) {
+        $(matchHeaderBlock).prepend('<span class="bettedIndicator">•</span> ');
+    }
+
+    if (this.exactTime) {
         var convertedTime = convertLoungeTime(this.exactTime);
-        if(convertedTime) {
+        if (convertedTime) {
             this.exactTimeConverted = convertedTime;
         }
+
         $(matchHeaderBlock).append('<span class="matchExactTime"> <span class="seperator">|</span> ' + this.exactTimeConverted + '</span>');
     }
-    if(this.matchFormat) {
+
+    if (this.matchFormat) {
         $(matchHeaderBlock).append(' <span class="seperator">|</span> <span class="bestoftype">' + this.matchFormat + '</span>');
     }
 
     // trim the unneeded spaces
-    var redInfo = matchHeaderBlock[0].querySelector("span[style*='#D12121']");
+    var redInfo = matchHeaderBlock[0].querySelector('span[style*="#D12121"]');
     if (redInfo) {
         if (!redInfo.textContent.trim().length) {
             matchHeaderBlock[0].removeChild(redInfo);
@@ -89,13 +99,15 @@ Match.prototype.appendExtraMatchInfo = function(targetElement) {
  * Caches the extra match info properties (exactTime, exactTimeConverted, matchFormat)
  */
 Match.prototype.cacheMatchExtraInfo = function() {
-    if(!this.matchID || !this.matchFormat || !this.exactTime || !this.game) {
+    if (!this.matchID || !this.matchFormat || !this.exactTime || !this.game) {
         return false;
     }
+
     matchInfoCachev2[this.game][this.matchID] = {
         time: Date.now(),
         matchFormat: this.matchFormat,
-        exactTime: this.exactTime
+        exactTime: this.exactTime,
+        userBetted: this.userBetted
     };
     chrome.storage.local.set({matchInfoCachev2: matchInfoCachev2});
     return true;
@@ -107,13 +119,14 @@ Match.prototype.cacheMatchExtraInfo = function() {
 function loadExtraMatchInfo(targetElement) {
     if (!targetElement.matchObj) targetElement.matchObj = new Match();
     var Matchik = targetElement.matchObj;
-    if(!Matchik.loading && !Matchik.extraInfoAdded) {
+    if (!Matchik.loading && !Matchik.extraInfoAdded) {
         Matchik.parseMatchElement(targetElement);
         if (matchInfoCachev2[appID].hasOwnProperty(Matchik.matchID) && Date.now() - matchInfoCachev2[appID][Matchik.matchID].time < (5 * 60 * 1000)) {
             // Loop through every cache property and set them within the Match object
             $.each(matchInfoCachev2[appID][Matchik.matchID], function(i, v) {
                 Matchik[i] = v;
             });
+
             Matchik.appendExtraMatchInfo(targetElement);
         } else {
             Matchik.loading = true;

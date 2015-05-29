@@ -1,3 +1,4 @@
+// jscs: disable
 /* HELPER FUCNTIONS */
 /* Get URL parameter */
 function gup(a) {
@@ -57,11 +58,30 @@ function removeTags(text) {
 }
 
 /**
+ * Create a regexp that matches keywords (or symbols) using .test
+ * @param {array} keywords - array of keyword strings to match
+ */
+function createKeywordRegexp(keywords) {
+    var str = keywords.reduce(function(prev, cur){
+        return prev+
+               (prev?"|":"")+ // add "|" as separator
+               cur.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&"); // escape special chars
+    }, "");
+
+
+    // create actual regexps
+    // match any keyword surrounded by:
+    // a word boundary, whitespace, the beginning/end of input, punctuation or itself
+    var filterTempl = "(?:^|¤)(#)\\1*(?=$|¤)".replace(/¤/g, "\\b|\\s|^|\\.|,|!|\\?|\\-|\\+|~");
+    return str ? new RegExp(filterTempl.replace(/#/g, str),"i") : undefined;
+}
+
+/**
  * Perform a POST request to a url
  * @param {string} url - The URL to request to
  * @param {object} data - the POST data
  * @param {function} callback - The function to call once the request is performed
- * @param {object} headers - a header object in the format {header: value} 
+ * @param {object} headers - a header object in the format {header: value}
  */
 function post(url, data, callback, headers) {
     // create xmlhttprequest instance
